@@ -11,6 +11,9 @@ project(irods_rule_engine_plugin_audit_amqp C CXX)
 include(${IRODS_TARGETS_PATH})
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++ -Wl,-z,defs")
 
 if (NOT CPACK_PACKAGING_INSTALL_PREFIX)
   set(CPACK_PACKAGING_INSTALL_PREFIX "/" CACHE STRING "Package root path. \"/\" is correct for normal package builds.." FORCE)
@@ -28,6 +31,8 @@ if (NOT IRODS_EXTERNALS_PACKAGE_ROOT)
   message(STATUS "Setting unspecified IRODS_EXTERNALS_PACKAGE_ROOT to '${IRODS_EXTERNALS_PACKAGE_ROOT}'")
 endif()
 
+set(CMAKE_COMPILE_COMMANDS TRUE)
+
 macro(IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH DEPENDENCY_NAME DEPENDENCY_SUBDIRECTORY)
   if (NOT IS_DIRECTORY ${IRODS_EXTERNALS_PACKAGE_ROOT}/${DEPENDENCY_SUBDIRECTORY})
     message(FATAL_ERROR "${DEPENDENCY_NAME} not found at ${IRODS_EXTERNALS_PACKAGE_ROOT}/${DEPENDENCY_SUBDIRECTORY}")
@@ -38,81 +43,60 @@ endmacro()
 IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH(JANSSON jansson2.7-0)
 IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH(QPID qpid-with-proton0.34-0)
 
-set(CMAKE_C_COMPILER ${IRODS_EXTERNALS_FULLPATH_CLANG}/bin/clang)
-set(CMAKE_CXX_COMPILER ${IRODS_EXTERNALS_FULLPATH_CLANG}/bin/clang++)
-
 find_package(OpenSSL REQUIRED)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libc++")
 set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-z,defs")
-add_compile_options(-nostdinc++)
-add_compile_options(-std=c++14)
-link_libraries(c++abi)
 include_directories(${IRODS_EXTERNALS_FULLPATH_CLANG}/include/c++/v1
                     ${IRODS_EXTERNALS_FULLPATH_JSON}/include)
 
-set(
-  IRODS_RULE_ENGINE_PLUGIN_AUDIT_AMQP_COMPILE_DEFINITIONS
-  RODS_SERVER
-  ENABLE_RE
-  )
+set(IRODS_CXX_STANDARD 17)
 
-set(
-  IRODS_RULE_ENGINE_PLUGIN_AUDIT_AMQP_LINK_LIBRARIES
-  irods_server
-  )
+set(PLUGIN irods_rule_engine_plugin-audit_amqp)
 
-set(
-  PLUGIN
-  irods_rule_engine_plugin-audit_amqp
-  )
+add_library(
+    ${PLUGIN}
+    MODULE
+    ${CMAKE_SOURCE_DIR}/libirods_rule_engine_plugin-audit_amqp.cpp
+    )
 
-  add_library(
-      ${PLUGIN}
-      MODULE
-      ${CMAKE_SOURCE_DIR}/libirods_rule_engine_plugin-audit_amqp.cpp
-      )
+target_compile_definitions(${PLUGIN} PRIVATE ${IRODS_COMPILE_DEFINITIONS})
+set_target_properties(${PLUGIN} PROPERTIES CXX_STANDARD ${IRODS_CXX_STANDARD})
+target_compile_options(${PLUGIN} PRIVATE -Wno-write-strings -nostdinc++)
 
-  target_include_directories(
-      ${PLUGIN}
-      PRIVATE
-      ${IRODS_INCLUDE_DIRS}
-      ${IRODS_EXTERNALS_FULLPATH_QPID}/include
-      ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-      ${IRODS_EXTERNALS_FULLPATH_JANSSON}/include
-      ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/include
-      )
+target_include_directories(
+    ${PLUGIN}
+    PRIVATE
+    ${IRODS_INCLUDE_DIRS}
+    ${IRODS_EXTERNALS_FULLPATH_QPID}/include
+    ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
+    ${IRODS_EXTERNALS_FULLPATH_JANSSON}/include
+    ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/include
+    )
 
-  target_link_libraries(
-      ${PLUGIN}
-      PRIVATE
-      ${IRODS_RULE_ENGINE_PLUGIN_AUDIT_AMQP_LINK_LIBRARIES}
-      ${IRODS_EXTERNALS_FULLPATH_JANSSON}/lib/libjansson.so
-      ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidclient.so
-      ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidcommon.so
-      ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidmessaging.so
-      ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton.so
-      ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton-cpp.so
-      ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
-      ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_regex.so
-      ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
-      ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/lib/libarchive.so
-      ${OPENSSL_CRYPTO_LIBRARY}
-      irods_common
-      )
+target_link_libraries(
+    ${PLUGIN}
+    PRIVATE
+    irods_server
+    irods_common
+    ${IRODS_EXTERNALS_FULLPATH_JANSSON}/lib/libjansson.so
+    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidclient.so
+    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidcommon.so
+    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidmessaging.so
+    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton.so
+    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton-cpp.so
+    ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
+    ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_regex.so
+    ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
+    ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/lib/libarchive.so
+    ${OPENSSL_CRYPTO_LIBRARY}
+    dl
+    c++abi
+    )
 
-  target_compile_definitions(${PLUGIN} PRIVATE ${IRODS_RULE_ENGINE_PLUGIN_AUDIT_AMQP_COMPILE_DEFINITIONS} ${IRODS_COMPILE_DEFINITIONS} BOOST_SYSTEM_NO_DEPRECATED)
-  target_compile_options(${PLUGIN} PRIVATE -Wno-write-strings)
-  set_property(TARGET ${PLUGIN} PROPERTY CXX_STANDARD ${IRODS_CXX_STANDARD})
-
-install(
-  TARGETS
-  ${PLUGIN}
-  LIBRARY
-    DESTINATION usr/lib/irods/plugins/rule_engines
-  )
+install(TARGETS ${PLUGIN} LIBRARY DESTINATION ${IRODS_PLUGINS_DIRECTORY}/rule_engines)
 
 install(
   FILES
