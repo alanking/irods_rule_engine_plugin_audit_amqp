@@ -42,12 +42,12 @@ class MessageBrokerConsumer(MessagingHandler):
             if action == 'START':
                 self.pid_dictionary[pid] = []
                 print(pid)
-                #print(message)
+                print(message)
                 self.pid_dictionary[pid].append(message)
 
             elif action == 'END' and pid in self.pid_dictionary:
-                #print(message)
-                #print(pid)
+                print(message)
+                print(pid)
                 self.pid_dictionary[pid].append(message)
                 self.pid_queue.put(self.pid_dictionary[pid])
                 del self.pid_dictionary[pid]

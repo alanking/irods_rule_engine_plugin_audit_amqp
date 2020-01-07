@@ -13,7 +13,9 @@ class MessageWorker(Process):
     def run(self):
         while True:
             next_task = self.pid_queue.get()
+            print(next_task)
             if next_task is None:
+                print('task_done')
                 self.pid_queue.task_done()
                 break
 
@@ -21,7 +23,9 @@ class MessageWorker(Process):
             log_file = start_str['log_file']
 
             answer = 'passed'
+            print(log_file)
             if os.path.exists(log_file):
+                print('log_file exists')
                 with open(log_file, 'r') as pid_file:
                     # variable count counts the number of lines in the pid file
                     count = 0
@@ -37,11 +41,13 @@ class MessageWorker(Process):
                         next_str = json.loads(next_task[count])
 
                         if not next_str == json_str:
+                            print('failed')
                             answer = 'failed'
                             break
 
                         count = count+1
 
+                    print('putting {} on result queue'.format(answer))
                     self.result_queue.put(answer)
 
             self.pid_queue.task_done()

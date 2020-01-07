@@ -19,6 +19,7 @@ class QueueListener(object):
 
         timeout = 5
         num_workers = 5
+        print('instantiating message queue workers')
         for _ in xrange(num_workers):
             worker = MessageWorker(self.pid_queue, self.result_queue)
             worker.start()
@@ -45,4 +46,5 @@ class QueueListener(object):
         for _ in xrange(num_workers):
             self.pid_queue.put(None)
 
+        print('joining pid queue')
         self.pid_queue.join()
