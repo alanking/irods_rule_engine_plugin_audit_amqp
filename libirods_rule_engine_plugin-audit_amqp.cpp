@@ -392,7 +392,7 @@ irods::error exec_rule_text(irods::default_re_ctx&, const std::string& _rt, std:
     return ERROR(SYS_NOT_SUPPORTED,"not supported");
 }
 
-irods::error exec_rule_expression(irods::default_re_ctx&, const std::string& _rt, std::list<boost::any>& _ps, irods::callback _eff_hdlr) {
+irods::error exec_rule_expression(irods::default_re_ctx&,const std::string&, msParamArray_t*, const std::string&, irods::callback) {
     return ERROR(SYS_NOT_SUPPORTED,"not supported");
 }
 
@@ -424,9 +424,9 @@ irods::pluggable_rule_engine<irods::default_re_ctx>* plugin_factory( const std::
             "exec_rule_text",
             std::function<irods::error(irods::default_re_ctx&,const std::string&,std::list<boost::any>&,irods::callback)>( exec_rule_text ) );
 
-    re->add_operation<irods::default_re_ctx&,const std::string&,std::list<boost::any>&,irods::callback>(
+    re->add_operation(
             "exec_rule_expression",
-            std::function<irods::error(irods::default_re_ctx&,const std::string&,std::list<boost::any>&,irods::callback)>( exec_rule_expression ) );
+            std::function<irods::error(irods::default_re_ctx&,const std::string&, msParamArray_t*, const std::string&, irods::callback)>(exec_rule_expression));
 
     return re;
 

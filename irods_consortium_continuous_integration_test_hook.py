@@ -109,16 +109,20 @@ def main():
 
     time.sleep(10)
 
+    test_audit_log = 'log/test_audit_plugin.log'
+    test_output_file = 'log/test_output.log'
     try:
-        test_audit_log = 'log/test_audit_plugin.log'
-        test_output_file = 'log/test_output.log'
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'su', '-', 'irods', '-c', 'python2 scripts/run_tests.py --xml_output --run_s=test_audit_plugin 2>&1 | tee {0}; exit $PIPESTATUS'.format(test_audit_log)], check_rc=True)
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'su', '-', 'irods', '-c', 'python2 scripts/run_tests.py --xml_output --run_s=test_resource_types.Test_Resource_Unixfilesystem 2>&1 | tee {0}; exit $PIPESTATUS'.format(test_output_file)], check_rc=True)
     finally:
         if output_root_directory:
             irods_python_ci_utilities.gather_files_satisfying_predicate('/var/lib/irods/log', output_root_directory, lambda x: True)
-            shutil.copy('/var/lib/irods/log/test_output.log', output_root_directory)
-            shutil.copy('/var/lib/irods/log/test_audit_plugin.log', output_root_directory)
+            test_output_file = os.path.join('/var/lib/irods', test_output_file)
+            if os.path.exists(test_output_file):
+                shutil.copy(test_output_file, output_root_directory)
+            test_audit_log = os.path.join('/var/lib/irods', test_audit_log)
+            if os.path.exists(test_audit_log):
+                shutil.copy(test_audit_log, output_root_directory)
 
 
 if __name__ == '__main__':
