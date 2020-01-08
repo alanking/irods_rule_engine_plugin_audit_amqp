@@ -34,7 +34,7 @@ macro(IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH DEPENDENCY_NAME DEPENDENCY_
 endmacro()
 
 IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH(JANSSON jansson2.7-0)
-IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH(QPID qpid-with-proton0.34-0)
+IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH(QPID qpid-with-proton0.34-1)
 
 set(CMAKE_COMPILE_COMMANDS TRUE)
 
@@ -45,9 +45,6 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++ -Wl,-
 
 set(PLUGIN irods_rule_engine_plugin-audit_amqp)
 
-include_directories(${IRODS_EXTERNALS_FULLPATH_CLANG}/include/c++/v1
-                    ${IRODS_EXTERNALS_FULLPATH_JSON}/include)
-
 add_library(${PLUGIN} MODULE ${CMAKE_SOURCE_DIR}/libirods_rule_engine_plugin-audit_amqp.cpp)
 set_target_properties(${PLUGIN} PROPERTIES CXX_STANDARD ${IRODS_CXX_STANDARD})
 target_compile_options(${PLUGIN} PRIVATE -Wno-write-strings -nostdinc++)
@@ -56,10 +53,12 @@ target_include_directories(
     ${PLUGIN}
     PRIVATE
     ${IRODS_INCLUDE_DIRS}
-    ${IRODS_EXTERNALS_FULLPATH_QPID}/include
-    ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-    ${IRODS_EXTERNALS_FULLPATH_JANSSON}/include
     ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/include
+    ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
+    ${IRODS_EXTERNALS_FULLPATH_CLANG}/include/c++/v1
+    ${IRODS_EXTERNALS_FULLPATH_JANSSON}/include
+    ${IRODS_EXTERNALS_FULLPATH_JSON}/include
+    ${IRODS_EXTERNALS_FULLPATH_QPID}/include
     )
 
 target_link_libraries(
