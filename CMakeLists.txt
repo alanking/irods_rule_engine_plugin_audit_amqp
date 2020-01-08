@@ -50,33 +50,33 @@ set_target_properties(${PLUGIN} PROPERTIES CXX_STANDARD ${IRODS_CXX_STANDARD})
 target_compile_options(${PLUGIN} PRIVATE -Wno-write-strings -nostdinc++)
 target_compile_definitions(${PLUGIN} PRIVATE ${IRODS_COMPILE_DEFINITIONS})
 target_include_directories(
-    ${PLUGIN}
-    PRIVATE
-    ${IRODS_INCLUDE_DIRS}
-    ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/include
-    ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-    ${IRODS_EXTERNALS_FULLPATH_CLANG}/include/c++/v1
-    ${IRODS_EXTERNALS_FULLPATH_JANSSON}/include
-    ${IRODS_EXTERNALS_FULLPATH_JSON}/include
-    ${IRODS_EXTERNALS_FULLPATH_QPID}/include
-    )
+  ${PLUGIN}
+  PRIVATE
+  ${IRODS_INCLUDE_DIRS}
+  ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/include
+  ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
+  ${IRODS_EXTERNALS_FULLPATH_CLANG}/include/c++/v1
+  ${IRODS_EXTERNALS_FULLPATH_JANSSON}/include
+  ${IRODS_EXTERNALS_FULLPATH_JSON}/include
+  ${IRODS_EXTERNALS_FULLPATH_QPID}/include
+  )
 
 target_link_libraries(
-    ${PLUGIN}
-    PRIVATE
-    irods_server
-    irods_common
-    ${IRODS_EXTERNALS_FULLPATH_JANSSON}/lib/libjansson.so
-    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidclient.so
-    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidcommon.so
-    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidmessaging.so
-    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton.so
-    ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton-cpp.so
-    ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_regex.so
-    ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
-    dl
-    c++abi
-    )
+  ${PLUGIN}
+  PRIVATE
+  irods_server
+  irods_common
+  ${IRODS_EXTERNALS_FULLPATH_JANSSON}/lib/libjansson.so
+  ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidclient.so
+  ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidcommon.so
+  ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpidmessaging.so
+  ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton.so
+  ${IRODS_EXTERNALS_FULLPATH_QPID}/lib/libqpid-proton-cpp.so
+  ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_regex.so
+  ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
+  dl
+  c++abi
+  )
 
 install(TARGETS ${PLUGIN} LIBRARY DESTINATION ${IRODS_PLUGINS_DIRECTORY}/rule_engines)
 
