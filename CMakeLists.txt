@@ -10,11 +10,6 @@ project(irods_rule_engine_plugin_audit_amqp C CXX)
 
 include(${IRODS_TARGETS_PATH})
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-set(CMAKE_INSTALL_RPATH ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++ -Wl,-z,defs")
-
 if (NOT CPACK_PACKAGING_INSTALL_PREFIX)
   set(CPACK_PACKAGING_INSTALL_PREFIX "/" CACHE STRING "Package root path. \"/\" is correct for normal package builds.." FORCE)
   message(STATUS "Setting unspecified CPACK_PACKAGING_INSTALL_PREFIX to '${CPACK_PACKAGING_INSTALL_PREFIX}'. This is the correct setting for normal builds.")
@@ -31,8 +26,6 @@ if (NOT IRODS_EXTERNALS_PACKAGE_ROOT)
   message(STATUS "Setting unspecified IRODS_EXTERNALS_PACKAGE_ROOT to '${IRODS_EXTERNALS_PACKAGE_ROOT}'")
 endif()
 
-set(CMAKE_COMPILE_COMMANDS TRUE)
-
 macro(IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH DEPENDENCY_NAME DEPENDENCY_SUBDIRECTORY)
   if (NOT IS_DIRECTORY ${IRODS_EXTERNALS_PACKAGE_ROOT}/${DEPENDENCY_SUBDIRECTORY})
     message(FATAL_ERROR "${DEPENDENCY_NAME} not found at ${IRODS_EXTERNALS_PACKAGE_ROOT}/${DEPENDENCY_SUBDIRECTORY}")
@@ -43,7 +36,14 @@ endmacro()
 IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH(JANSSON jansson2.7-0)
 IRODS_MACRO_SET_AND_CHECK_DEPENDENCY_FULL_PATH(QPID qpid-with-proton0.34-0)
 
-find_package(OpenSSL REQUIRED)
+set(CMAKE_COMPILE_COMMANDS TRUE)
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++ -Wl,-z,defs")
+
+set(PLUGIN irods_rule_engine_plugin-audit_amqp)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++")
@@ -52,20 +52,10 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-z,defs")
 include_directories(${IRODS_EXTERNALS_FULLPATH_CLANG}/include/c++/v1
                     ${IRODS_EXTERNALS_FULLPATH_JSON}/include)
 
-set(IRODS_CXX_STANDARD 17)
-
-set(PLUGIN irods_rule_engine_plugin-audit_amqp)
-
-add_library(
-    ${PLUGIN}
-    MODULE
-    ${CMAKE_SOURCE_DIR}/libirods_rule_engine_plugin-audit_amqp.cpp
-    )
-
-target_compile_definitions(${PLUGIN} PRIVATE ${IRODS_COMPILE_DEFINITIONS})
+add_library(${PLUGIN} MODULE ${CMAKE_SOURCE_DIR}/libirods_rule_engine_plugin-audit_amqp.cpp)
 set_target_properties(${PLUGIN} PROPERTIES CXX_STANDARD ${IRODS_CXX_STANDARD})
 target_compile_options(${PLUGIN} PRIVATE -Wno-write-strings -nostdinc++)
-
+target_compile_definitions(${PLUGIN} PRIVATE ${IRODS_COMPILE_DEFINITIONS})
 target_include_directories(
     ${PLUGIN}
     PRIVATE
@@ -90,8 +80,6 @@ target_link_libraries(
     ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
     ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_regex.so
     ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
-    ${IRODS_EXTERNALS_FULLPATH_ARCHIVE}/lib/libarchive.so
-    ${OPENSSL_CRYPTO_LIBRARY}
     dl
     c++abi
     )
