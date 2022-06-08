@@ -149,10 +149,10 @@ irods::error start(irods::default_re_ctx& _u,const std::string& _instance_name) 
 
     std::string log_file;
     if (test_mode) {
-	json_obj["log_file"] = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
+        json_obj["log_file"] = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
     }
 
-    std::string msg_str str(boost::format() %  );
+    std::string msg_str = std::string("__BEGIN_JSON__") + json_obj.dump() + std::string("__END_JSON__");
 
     pn_message_t * message;
     pn_data_t * body;
@@ -178,19 +178,9 @@ irods::error start(irods::default_re_ctx& _u,const std::string& _instance_name) 
 }
 
 irods::error stop(irods::default_re_ctx& _u,const std::string& _instance_name) {
-    (void) _u;
 
     std::lock_guard<std::mutex> lock(audit_plugin_mutex);
 
-    irods::error ret = get_re_configs( _instance_name );
-    if( !ret.ok() ) {
-        irods::log(PASS(ret));
-    }
-
-    messenger = pn_messenger(NULL);
-    pn_messenger_start(messenger);
-    pn_messenger_set_blocking(messenger, false);  // do not block
-    
     nlohmann::json json_obj;
 
     struct timeval tv;
@@ -210,10 +200,8 @@ irods::error stop(irods::default_re_ctx& _u,const std::string& _instance_name) {
     json_obj["action"] = "STOP";
 
 
-    std::string log_file;
     if (test_mode) {
-        log_file = 
-	json_obj["log_file"] = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
+        json_obj["log_file"] = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
     }
 
     std::string msg_str = std::string("__BEGIN_JSON__") + json_obj.dump() + std::string("__END_JSON__");
@@ -233,9 +221,12 @@ irods::error stop(irods::default_re_ctx& _u,const std::string& _instance_name) {
     
     pn_message_free(message);
 
+    pn_messenger_stop(messenger);
+    pn_messenger_free(messenger);
+
     if (test_mode) {
-        log_file_ofstream.open(log_file);
         log_file_ofstream << msg_str << std::endl;
+        log_file_ofstream.close();
     }
 
     return SUCCESS();
