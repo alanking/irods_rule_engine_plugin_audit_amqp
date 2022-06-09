@@ -134,23 +134,43 @@ irods::error start(irods::default_re_ctx& _u,const std::string& _instance_name) 
     struct timeval tv;
     gettimeofday(&tv, NULL);
     unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    json_obj["time_stamp"] = std::to_string(time_ms);
 
     char host_name[MAX_NAME_LEN];
     gethostname( host_name, MAX_NAME_LEN );
-    json_obj["hostname"] = host_name;
 
     pid_t pid = getpid();
-    json_obj["pid"] = std::to_string(pid);
-
-    json_obj["action"] = "START";
 
     std::string log_file = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
-    if (test_mode) {
-        json_obj["log_file"] = log_file;
+    std::string tmp_msg;
+    try {
+        json_obj["time_stamp"] = std::to_string(time_ms);
+        json_obj["hostname"] = host_name;
+        json_obj["pid"] = std::to_string(pid);
+        json_obj["action"] = "START";
+
+        if (test_mode) {
+            json_obj["log_file"] = log_file;
+        }
+        tmp_msg = json_obj.dump();
+    }
+    catch (const irods::exception& e) {
+        rodsLog(LOG_NOTICE, e.client_display_what());
+        return ERROR(e.code(), fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what()));
+    }
+    catch (const std::exception& e) {
+        rodsLog(LOG_NOTICE, e.what());
+        return ERROR(SYS_INTERNAL_ERR, fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what()));
+    }
+    catch (const nlohmann::json::exception& e) {
+        const std::string msg = fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what());
+        rodsLog(LOG_NOTICE, msg.data());
+        return ERROR(SYS_LIBRARY_ERROR, msg);
+    }
+    catch (...) {
+        return ERROR(SYS_UNKNOWN_ERROR, fmt::format("[{}:{}] - unknown error occurred", __func__, __LINE__));
     }
 
-    std::string msg_str = std::string("__BEGIN_JSON__") + json_obj.dump() + std::string("__END_JSON__");
+    std::string msg_str = std::string("__BEGIN_JSON__") + tmp_msg + std::string("__END_JSON__");
 
     pn_message_t * message;
     pn_data_t * body;
@@ -181,26 +201,46 @@ irods::error stop(irods::default_re_ctx& _u,const std::string& _instance_name) {
 
     nlohmann::json json_obj;
 
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    json_obj["time_stamp"] = std::to_string(time_ms);
+    std::string tmp_msg;
+    try {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+        json_obj["time_stamp"] = std::to_string(time_ms);
 
-    char host_name[MAX_NAME_LEN];
-    gethostname( host_name, MAX_NAME_LEN );
-    json_obj["hostname"] = host_name;
+        char host_name[MAX_NAME_LEN];
+        gethostname( host_name, MAX_NAME_LEN );
+        json_obj["hostname"] = host_name;
 
-    pid_t pid = getpid();
-    json_obj["pid"] = std::to_string(pid);
+        pid_t pid = getpid();
+        json_obj["pid"] = std::to_string(pid);
 
-    json_obj["action"] = "STOP";
+        json_obj["action"] = "STOP";
 
 
-    if (test_mode) {
-        json_obj["log_file"] = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
+        if (test_mode) {
+            json_obj["log_file"] = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
+        }
+        tmp_msg = json_obj.dump();
+    }
+    catch (const irods::exception& e) {
+        rodsLog(LOG_NOTICE, e.client_display_what());
+        return ERROR(e.code(), fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what()));
+    }
+    catch (const std::exception& e) {
+        rodsLog(LOG_NOTICE, e.what());
+        return ERROR(SYS_INTERNAL_ERR, fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what()));
+    }
+    catch (const nlohmann::json::exception& e) {
+        const std::string msg = fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what());
+        rodsLog(LOG_NOTICE, msg.data());
+        return ERROR(SYS_LIBRARY_ERROR, msg);
+    }
+    catch (...) {
+        return ERROR(SYS_UNKNOWN_ERROR, fmt::format("[{}:{}] - unknown error occurred", __func__, __LINE__));
     }
 
-    std::string msg_str = std::string("__BEGIN_JSON__") + json_obj.dump() + std::string("__END_JSON__");
+    std::string msg_str = std::string("__BEGIN_JSON__") + tmp_msg + std::string("__END_JSON__");
 
     pn_message_t * message;
     pn_data_t * body;
@@ -270,63 +310,89 @@ irods::error exec_rule(
     }
 
     nlohmann::json json_obj;
+    std::string tmp_msg;
 
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    json_obj["time_stamp"] = std::to_string(time_ms);
+    try {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+        irods::log(LOG_NOTICE, fmt::format("timestamp [{}]", std::to_string(time_ms)));
+        json_obj["time_stamp"] = std::to_string(time_ms);
 
-    char host_name[MAX_NAME_LEN];
-    gethostname( host_name, MAX_NAME_LEN );
-    json_obj["hostname"] = host_name;
+        char host_name[MAX_NAME_LEN];
+        gethostname( host_name, MAX_NAME_LEN );
+        irods::log(LOG_NOTICE, fmt::format("host_name [{}]", host_name));
+        json_obj["hostname"] = host_name;
 
 
-    pid_t pid = getpid();
-    json_obj["pid"] = std::to_string(pid);
+        pid_t pid = getpid();
+        irods::log(LOG_NOTICE, fmt::format("pid [{}]", std::to_string(pid)));
+        json_obj["pid"] = std::to_string(pid);
 
-    json_obj["rule_name"] = _rn;
+        irods::log(LOG_NOTICE, fmt::format("pid [{}]", _rn));
+        json_obj["rule_name"] = _rn;
 
-    for( auto itr : _ps ) {
-        // The BytesBuf parameter should not be serialized because this commonly contains
-        // the entirety of the contents of files. These could be very big and cause the
-        // message broker to explode.
-        if (std::type_index(typeid(BytesBuf*)) == std::type_index(itr.type())) {
-            rodsLog(LOG_DEBUG9, "[{}:{}] - skipping serialization of BytesBuf parameter",
-                __FILE__, __LINE__);
-            continue;
-        }
-
-        // serialize the parameter to a map
-        irods::re_serialization::serialized_parameter_t param;
-        irods::error ret = irods::re_serialization::serialize_parameter(itr, param);
-        if(!ret.ok()) {
-             rodsLog(
-                 LOG_ERROR,
-                 "unsupported argument for calling re rules from the rule language");
-             continue;
-        }
-
-        for( auto elem : param ) {
-
-            size_t ctr = insert_arg_into_counter_map(arg_type_map, elem.first);
-            std::stringstream ctr_str;
-            ctr_str << ctr;
-            
-            std::string key = elem.first;
-            if (ctr > 1) {
-                key += "__";
-                key += ctr_str.str();
+        for( auto itr : _ps ) {
+            // The BytesBuf parameter should not be serialized because this commonly contains
+            // the entirety of the contents of files. These could be very big and cause the
+            // message broker to explode.
+            if (std::type_index(typeid(BytesBuf*)) == std::type_index(itr.type())) {
+                rodsLog(LOG_DEBUG9, "[{}:{}] - skipping serialization of BytesBuf parameter",
+                    __FILE__, __LINE__);
+                continue;
             }
 
-            json_obj[key] = elem.second;
+            // serialize the parameter to a map
+            irods::re_serialization::serialized_parameter_t param;
+            irods::error ret = irods::re_serialization::serialize_parameter(itr, param);
+            if(!ret.ok()) {
+                 rodsLog(
+                     LOG_ERROR,
+                     "unsupported argument for calling re rules from the rule language");
+                 continue;
+            }
 
-            ++ctr; 
-            ctr_str.clear();
+            for( auto elem : param ) {
 
-        } // for elem
-    } // for itr
+                size_t ctr = insert_arg_into_counter_map(arg_type_map, elem.first);
+                std::stringstream ctr_str;
+                ctr_str << ctr;
 
-    std::string msg_str = std::string("__BEGIN_JSON__") + json_obj.dump() + std::string("__END_JSON__");
+                std::string key = elem.first;
+                if (ctr > 1) {
+                    key += "__";
+                    key += ctr_str.str();
+                }
+
+                irods::log(LOG_NOTICE, fmt::format("key [{}], val [{}]", key, elem.second));
+                json_obj[key] = std::string{elem.second};
+
+                ++ctr; 
+                ctr_str.clear();
+
+            } // for elem
+        } // for itr
+        irods::log(LOG_NOTICE, "dumping json");
+        tmp_msg = json_obj.dump();
+    }
+    catch (const irods::exception& e) {
+        rodsLog(LOG_NOTICE, e.client_display_what());
+        return ERROR(e.code(), fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what()));
+    }
+    catch (const nlohmann::json::exception& e) {
+        const std::string msg = fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what());
+        rodsLog(LOG_NOTICE, msg.data());
+        return ERROR(SYS_LIBRARY_ERROR, msg);
+    }
+    catch (const std::exception& e) {
+        rodsLog(LOG_NOTICE, e.what());
+        return ERROR(SYS_INTERNAL_ERR, fmt::format("[{}:{}] - [{}]", __func__, __LINE__, e.what()));
+    }
+    catch (...) {
+        return ERROR(SYS_UNKNOWN_ERROR, fmt::format("[{}:{}] - unknown error occurred", __func__, __LINE__));
+    }
+
+    std::string msg_str = std::string("__BEGIN_JSON__") + tmp_msg + std::string("__END_JSON__");
 
     pn_message_t * message;
     pn_data_t * body;
