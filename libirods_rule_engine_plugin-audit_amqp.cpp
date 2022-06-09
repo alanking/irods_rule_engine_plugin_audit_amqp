@@ -134,22 +134,20 @@ irods::error start(irods::default_re_ctx& _u,const std::string& _instance_name) 
     struct timeval tv;
     gettimeofday(&tv, NULL);
     unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    std::stringstream time_str; time_str << time_ms;
-    json_obj["time_stamp"] = time_str.str(); 
+    json_obj["time_stamp"] = std::to_string(time_ms);
 
     char host_name[MAX_NAME_LEN];
     gethostname( host_name, MAX_NAME_LEN );
-    json_obj["hostname"] = std::string(host_name);
+    json_obj["hostname"] = host_name;
 
     pid_t pid = getpid();
-    std::stringstream pid_str; pid_str << pid;
-    json_obj["pid"] = pid_str.str();
+    json_obj["pid"] = std::to_string(pid);
 
     json_obj["action"] = "START";
 
-    std::string log_file;
+    std::string log_file = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
     if (test_mode) {
-        json_obj["log_file"] = str(boost::format("%s/%06i.txt") % log_path_prefix % pid);
+        json_obj["log_file"] = log_file;
     }
 
     std::string msg_str = std::string("__BEGIN_JSON__") + json_obj.dump() + std::string("__END_JSON__");
@@ -186,16 +184,14 @@ irods::error stop(irods::default_re_ctx& _u,const std::string& _instance_name) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    std::stringstream time_str; time_str << time_ms;
-    json_obj["time_stamp"] = time_str.str(); 
+    json_obj["time_stamp"] = std::to_string(time_ms);
 
     char host_name[MAX_NAME_LEN];
     gethostname( host_name, MAX_NAME_LEN );
-    json_obj["hostname"] = std::string(host_name);
+    json_obj["hostname"] = host_name;
 
     pid_t pid = getpid();
-    std::stringstream pid_str; pid_str << pid;
-    json_obj["pid"] = pid_str.str();
+    json_obj["pid"] = std::to_string(pid);
 
     json_obj["action"] = "STOP";
 
@@ -278,22 +274,17 @@ irods::error exec_rule(
     struct timeval tv;
     gettimeofday(&tv, NULL);
     unsigned long time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    std::stringstream time_str; time_str << time_ms;
-
-    json_obj["time_stamp"] = time_str.str();
+    json_obj["time_stamp"] = std::to_string(time_ms);
 
     char host_name[MAX_NAME_LEN];
     gethostname( host_name, MAX_NAME_LEN );
-    json_obj["hostname"] = std::string(host_name);
+    json_obj["hostname"] = host_name;
 
 
     pid_t pid = getpid();
-    std::stringstream pid_str; pid_str << pid;
-    json_obj["pid"] = pid_str.str();
-
+    json_obj["pid"] = std::to_string(pid);
 
     json_obj["rule_name"] = _rn;
-
 
     for( auto itr : _ps ) {
         // The BytesBuf parameter should not be serialized because this commonly contains
@@ -327,7 +318,7 @@ irods::error exec_rule(
                 key += ctr_str.str();
             }
 
-	    json_obj[key] = elem.second;
+            json_obj[key] = elem.second;
 
             ++ctr; 
             ctr_str.clear();
